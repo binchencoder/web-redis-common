@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
 import com.jingoal.web.common.Serializer;
@@ -17,14 +20,23 @@ import com.jingoal.web.common.Serializer;
  */
 public class HessianSerializer implements Serializer {
 
+	private static final Logger logger = LoggerFactory.getLogger(HessianSerializer.class);
+	
     public byte[] serialize(Object object) {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         Hessian2Output ho = new Hessian2Output(os);
         try {
             ho.writeObject(object);
         } catch (IOException e) {
-            e.printStackTrace();
-        }
+        	logger.error("HessianSerializer serialize error:{}", e);
+        } finally {
+        	try {
+        		os.flush();
+        		ho.flush();
+			} catch (Exception ex) {
+				logger.error("HessianSerializer serialize flush error:{}", ex);
+			}
+		}
 
         return os.toByteArray();
     }
@@ -35,8 +47,15 @@ public class HessianSerializer implements Serializer {
         try {
             return hi.readObject();
         } catch (IOException e) {
-            e.printStackTrace();
-        }
+        	logger.error("HessianSerializer deserialize error:{}", e);
+        } finally {
+        	try {
+        		is.close();
+        		hi.close();
+			} catch (Exception ex) {
+				logger.error("HessianSerializer deserialize close error:{}", ex);
+			}
+		}
 
         return null;
     }

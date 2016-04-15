@@ -20,15 +20,12 @@ import com.jingoal.web.common.queue.Producer;
  * @time: 2016年4月15日 下午12:43:05
  */
 public class RedisProducer<M extends Serializable> implements Producer<RedisMessage<M>> {
+
+	private static final Logger logger = LoggerFactory.getLogger(RedisProducer.class);
 	
 	private JedisConnectionFactory jedisConnectionFactory;
 	private Serializer serializer;
-	private static final Logger logger = LoggerFactory.getLogger(RedisProducer.class);
-
-	public JedisConnectionFactory getJedisConnectionFactory() {
-		return jedisConnectionFactory;
-	}
-
+	
 	public void setJedisConnectionFactory(JedisConnectionFactory jedisConnectionFactory) {
 		this.jedisConnectionFactory = jedisConnectionFactory;
 	}
