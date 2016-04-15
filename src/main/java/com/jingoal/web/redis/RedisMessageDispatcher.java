@@ -8,7 +8,6 @@ import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 
@@ -37,15 +36,17 @@ public class RedisMessageDispatcher {
         return DispatcherHolder.instance;
     }
 	
-	@Autowired
-	private JedisConnectionFactory jedisConnectionFactory;
-	
+	private JedisConnectionFactory connectionFactory;
     private Map<String, RedisMessageListener<String>> listeners = new HashMap<String, RedisMessageListener<String>>();
     private Executor executor = Executors.newCachedThreadPool();    //默认线程池
     private Serializer serializer = new HessianSerializer(); //默认序列化类
     private volatile boolean isRunning = true;
 
-    public void addListener(RedisMessageListener<String> listener) {
+	public void setConnectionFactory(JedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
+	}
+
+	public void addListener(RedisMessageListener<String> listener) {
         this.listeners.put(listener.key(), listener);
     }
 
@@ -77,7 +78,7 @@ public class RedisMessageDispatcher {
                 public void run() {
                 	JedisConnection jedisConnection = null;
                     try {
-                        jedisConnection = jedisConnectionFactory.getConnection();
+                        jedisConnection = connectionFactory.getConnection();
                         logger.info("listening queue destination {} ......", entry.getKey());
                         while (isRunning) {
                             byte[] key = serializer.serialize(entry.getKey());

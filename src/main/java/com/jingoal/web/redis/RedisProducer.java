@@ -23,11 +23,11 @@ public class RedisProducer<M extends Serializable> implements Producer<RedisMess
 
 	private static final Logger logger = LoggerFactory.getLogger(RedisProducer.class);
 	
-	private JedisConnectionFactory jedisConnectionFactory;
+	private JedisConnectionFactory connectionFactory;
 	private Serializer serializer;
 	
-	public void setJedisConnectionFactory(JedisConnectionFactory jedisConnectionFactory) {
-		this.jedisConnectionFactory = jedisConnectionFactory;
+	public void setConnectionFactory(JedisConnectionFactory connectionFactory) {
+		this.connectionFactory = connectionFactory;
 	}
 
 	public void setSerializer(Serializer serializer) {
@@ -37,7 +37,7 @@ public class RedisProducer<M extends Serializable> implements Producer<RedisMess
 	public void send(RedisMessage<M> message) throws MessageException {
 		JedisConnection jedisConnection = null;
 		try {
-			jedisConnection = jedisConnectionFactory.getConnection();
+			jedisConnection = connectionFactory.getConnection();
 			byte[] key = serializer.serialize(message.key());
 			byte[] value = serializer.serialize(message);
 			jedisConnection.lPush(key, value);
