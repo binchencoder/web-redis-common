@@ -10,9 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
-import com.jingoal.web.common.Message;
-import com.jingoal.web.common.Serializer;
 import com.jingoal.web.hessian.HessianSerializer;
 
 /**
@@ -39,7 +38,7 @@ public class RedisMessageDispatcher {
 	private JedisConnectionFactory connectionFactory;
     private Map<String, RedisMessageListener<String>> listeners = new HashMap<String, RedisMessageListener<String>>();
     private Executor executor = Executors.newCachedThreadPool();    //默认线程池
-    private Serializer serializer = new HessianSerializer(); //默认序列化类
+    private RedisSerializer<Object> serializer = new HessianSerializer(); //默认序列化类
     private volatile boolean isRunning = true;
 
 	public void setConnectionFactory(JedisConnectionFactory connectionFactory) {
@@ -61,11 +60,11 @@ public class RedisMessageDispatcher {
         this.addListeners(listenerList);
     }
 
-    public void setSerializer(Serializer serializer) {
-        this.serializer = serializer;
-    }
+    public void setSerializer(RedisSerializer<Object> serializer) {
+		this.serializer = serializer;
+	}
 
-    public void setExecutor(Executor executor) {
+	public void setExecutor(Executor executor) {
         this.executor = executor;
     }
 
@@ -84,7 +83,7 @@ public class RedisMessageDispatcher {
                             byte[] key = serializer.serialize(entry.getKey());
                             byte[] value =  jedisConnection.rPop(key);
                             if (value != null) {
-                                entry.getValue().onMessage( (Message<String>) serializer.deserialize(value));
+                                entry.getValue().onMessage( (RedisMessage<String>) serializer.deserialize(value));
                             }
                         }
                     } catch (Exception ex) {

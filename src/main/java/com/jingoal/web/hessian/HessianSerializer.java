@@ -6,10 +6,10 @@ import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
-import com.jingoal.web.common.Serializer;
 
 /**
  * @description: Hessian 序列化实现
@@ -18,7 +18,7 @@ import com.jingoal.web.common.Serializer;
  * @author: chenbin
  * @time: 2016年4月6日 下午7:50:39
  */
-public class HessianSerializer implements Serializer {
+public class HessianSerializer implements RedisSerializer<Object> {
 
 	private static final Logger logger = LoggerFactory.getLogger(HessianSerializer.class);
 	

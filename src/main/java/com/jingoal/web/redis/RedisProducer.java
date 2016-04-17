@@ -6,8 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
-import com.jingoal.web.common.Serializer;
 import com.jingoal.web.common.exception.MessageException;
 import com.jingoal.web.common.queue.Producer;
 
@@ -24,13 +24,13 @@ public class RedisProducer<M extends Serializable> implements Producer<RedisMess
 	private static final Logger logger = LoggerFactory.getLogger(RedisProducer.class);
 	
 	private JedisConnectionFactory connectionFactory;
-	private Serializer serializer;
+	private RedisSerializer<Object> serializer;
 	
 	public void setConnectionFactory(JedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 
-	public void setSerializer(Serializer serializer) {
+	public void setSerializer(RedisSerializer<Object> serializer) {
 		this.serializer = serializer;
 	}
 

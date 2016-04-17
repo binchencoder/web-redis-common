@@ -19,7 +19,18 @@ public abstract class RedisMessage<M extends Serializable> extends Message<M> im
 	 */
 	private static final long serialVersionUID = 1L;
 
+	// 消息处理失败，重试次数
+	private int retry = 1;
+	
 	public RedisMessage(M m) {
         super(m);
     }
+
+	public int getRetry() {
+		return retry;
+	}
+
+	public void setRetry(int retry) {
+		this.retry = retry;
+	}
 }
