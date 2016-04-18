@@ -14,17 +14,17 @@ import com.jingoal.web.common.Message;
  */
 public abstract class RedisMessage<M extends Serializable> extends Message<M> implements Cacheable {
 
-    /**
+	/**
 	 * serialVersionUID: 序列id
 	 */
 	private static final long serialVersionUID = 1L;
 
 	// 消息处理失败，重试次数
 	private int retry = 1;
-	
+
 	public RedisMessage(M m) {
-        super(m);
-    }
+		super(m);
+	}
 
 	public int getRetry() {
 		return retry;

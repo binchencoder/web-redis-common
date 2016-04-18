@@ -22,10 +22,10 @@ import com.jingoal.web.common.queue.Producer;
 public class RedisProducer<M extends Serializable> implements Producer<RedisMessage<M>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(RedisProducer.class);
-	
+
 	private JedisConnectionFactory connectionFactory;
 	private RedisSerializer<Object> serializer;
-	
+
 	public void setConnectionFactory(JedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}

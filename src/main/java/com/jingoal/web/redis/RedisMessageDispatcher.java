@@ -25,78 +25,79 @@ public class RedisMessageDispatcher {
 
 	private static final Logger logger = LoggerFactory.getLogger(RedisProducer.class);
 
-	private RedisMessageDispatcher() {	}
-	
+	private RedisMessageDispatcher() {
+	}
+
 	private static class DispatcherHolder {
-        private static RedisMessageDispatcher instance;
-    }
-	
+		private static RedisMessageDispatcher instance;
+	}
+
 	public static RedisMessageDispatcher getInstance() {
-        return DispatcherHolder.instance;
-    }
-	
+		return DispatcherHolder.instance;
+	}
+
 	private JedisConnectionFactory connectionFactory;
-    private Map<String, RedisMessageListener<String>> listeners = new HashMap<String, RedisMessageListener<String>>();
-    private Executor executor = Executors.newCachedThreadPool();    //默认线程池
-    private RedisSerializer<Object> serializer = new HessianSerializer(); //默认序列化类
-    private volatile boolean isRunning = true;
+	private Map<String, RedisMessageListener<String>> listeners = new HashMap<String, RedisMessageListener<String>>();
+	private Executor executor = Executors.newCachedThreadPool(); // 默认线程池
+	private RedisSerializer<Object> serializer = new HessianSerializer(); // 默认序列化类
+	private volatile boolean isRunning = true;
 
 	public void setConnectionFactory(JedisConnectionFactory connectionFactory) {
 		this.connectionFactory = connectionFactory;
 	}
 
 	public void addListener(RedisMessageListener<String> listener) {
-        this.listeners.put(listener.key(), listener);
-    }
+		this.listeners.put(listener.key(), listener);
+	}
 
-    public void addListeners(List<RedisMessageListener<String>> listenerList) {
-        for (RedisMessageListener<String> listener : listenerList) {
-        	this.addListener(listener);
-        }
-    }
+	public void addListeners(List<RedisMessageListener<String>> listenerList) {
+		for (RedisMessageListener<String> listener : listenerList) {
+			this.addListener(listener);
+		}
+	}
 
-    public void setListeners(List<RedisMessageListener<String>> listenerList) {
-        this.listeners.clear();
-        this.addListeners(listenerList);
-    }
+	public void setListeners(List<RedisMessageListener<String>> listenerList) {
+		this.listeners.clear();
+		this.addListeners(listenerList);
+	}
 
-    public void setSerializer(RedisSerializer<Object> serializer) {
+	public void setSerializer(RedisSerializer<Object> serializer) {
 		this.serializer = serializer;
 	}
 
 	public void setExecutor(Executor executor) {
-        this.executor = executor;
-    }
+		this.executor = executor;
+	}
 
-    @SuppressWarnings("unchecked")
-    public void start() {
-        logger.info("redis message dispatcher starting......");
+	@SuppressWarnings("unchecked")
+	public void start() {
+		logger.info("redis message dispatcher starting......");
 
-        for (final Map.Entry<String, RedisMessageListener<String>> entry : listeners.entrySet()) {
-            executor.execute(new Runnable() {
-                public void run() {
-                	JedisConnection jedisConnection = null;
-                    try {
-                        jedisConnection = connectionFactory.getConnection();
-                        logger.info("listening queue destination {} ......", entry.getKey());
-                        while (isRunning) {
-                            byte[] key = serializer.serialize(entry.getKey());
-                            byte[] value =  jedisConnection.rPop(key);
-                            if (value != null) {
-                                entry.getValue().onMessage( (RedisMessage<String>) serializer.deserialize(value));
-                            }
-                        }
-                    } catch (Exception ex) {
-                        logger.error("error[key=" + entry.getKey() + "]" + ex.getMessage(), ex);
-                    } finally {
-                    	jedisConnection.close();
-                    }
-                }
-            });
-        }
-    }
+		for (final Map.Entry<String, RedisMessageListener<String>> entry : listeners.entrySet()) {
+			executor.execute(new Runnable() {
+				public void run() {
+					JedisConnection jedisConnection = null;
+					try {
+						jedisConnection = connectionFactory.getConnection();
+						logger.info("listening queue destination {} ......", entry.getKey());
+						while (isRunning) {
+							byte[] key = serializer.serialize(entry.getKey());
+							byte[] value = jedisConnection.rPop(key);
+							if (value != null) {
+								entry.getValue().onMessage((RedisMessage<String>) serializer.deserialize(value));
+							}
+						}
+					} catch (Exception ex) {
+						logger.error("error[key=" + entry.getKey() + "]" + ex.getMessage(), ex);
+					} finally {
+						jedisConnection.close();
+					}
+				}
+			});
+		}
+	}
 
-    public void shutdown() {
-        this.isRunning = false;
-    }
+	public void shutdown() {
+		this.isRunning = false;
+	}
 }
