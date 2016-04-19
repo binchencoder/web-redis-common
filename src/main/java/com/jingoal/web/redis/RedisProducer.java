@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 import com.jingoal.web.common.exception.MessageException;
@@ -45,7 +46,7 @@ public class RedisProducer<M extends Serializable> implements Producer<RedisMess
 		} catch (Exception ex) {
 			logger.error("error[key=" + message.key() + " seconds=" + message.expire() + "]" + ex.getMessage(), ex);
 		} finally {
-			jedisConnection.close();
+			RedisConnectionUtils.releaseConnection(jedisConnection, connectionFactory);
 		}
 	}
 }

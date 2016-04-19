@@ -3,9 +3,9 @@ package com.jingoal.web.common.exception;
 /**
  * @description: 发送消息异常
  * 
- *               <p>
- *               捕捉该异常后可能会重新发送
- *               </p>
+ * <p>
+ * 捕捉该异常后可能会重新发送
+ * </p>
  * 
  * @company: 北京今目标信息技术有限公司
  * @author: chenbin
