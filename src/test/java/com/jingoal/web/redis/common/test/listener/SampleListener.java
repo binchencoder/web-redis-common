@@ -39,8 +39,10 @@ public class SampleListener implements RedisMessageListener<Serializable> {
 		logger.info("onMessage");
 		System.out.println("come in SampleListener, retry : " + message.getRetry());
 
-		if (message.getRetry() == 3)
-			return;
+		if (message.getRetry() == 3) {
+			// 记录
+			return; 
+		}
 
 		try {
 			System.err.println(message.getParams());
