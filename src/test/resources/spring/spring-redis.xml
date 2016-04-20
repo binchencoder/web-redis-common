@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:integration="http://www.springframework.org/schema/integration"
+	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
+	xmlns:redis="http://www.springframework.org/schema/redis" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="
+			http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+			http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
+        	http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd
+        	http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd ">
+
+	<!-- Redis配置信息 -->
+	<bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxTotal" value="${redis.maxTotal}"></property>
+		<property name="maxIdle" value="${redis.maxIdle}" />
+		<property name="maxWaitMillis" value="${redis.maxWait}" />
+		<property name="testOnBorrow" value="${redis.testOnBorrow}" />
+	</bean>
+
+	<!-- 生产环境配置 -->
+	<!-- <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"> 
+		<constructor-arg ref="sentinelConfig" /> <constructor-arg ref="poolConfig" 
+		/> </bean> -->
+
+	<bean id="jedisConnectionFactory"
+		class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+		p:use-pool="true" p:host-name="localhost" p:port="6379" />
+
+	<bean id="sentinelConfig"
+		class="org.springframework.data.redis.connection.RedisSentinelConfiguration">
+		<property name="master">
+			<bean class="org.springframework.data.redis.connection.RedisNode">
+				<property name="name" value="${sentinel.master}"></property>
+			</bean>
+		</property>
+		<property name="sentinels">
+			<list>
+				<ref bean="sentinel1" />
+				<!-- 开发环境docker容器中只保留1个，其他注释掉；发布时请根据外网线上实际哨兵情况做调整 -->
+				<!-- <ref bean="sentinel2" /> <ref bean="sentinel3" /> -->
+			</list>
+		</property>
+	</bean>
+
+	<bean id="sentinel1" class="org.springframework.data.redis.connection.RedisNode">
+		<constructor-arg name="host" value="${sentinel1.host}" />
+		<constructor-arg name="port" value="${sentinel1.port}" />
+	</bean>
+	<!-- 开发环境docker容器中只保留1个，其他注释掉；发布时请根据外网线上实际哨兵情况做调整 -->
+	<!-- <bean id="sentinel2" class="org.springframework.data.redis.connection.RedisNode"> 
+		<constructor-arg name="host" value="${sentinel2.host}"/> <constructor-arg 
+		name="port" value="${sentinel2.port}"/> </bean> <bean id="sentinel3" class="org.springframework.data.redis.connection.RedisNode"> 
+		<constructor-arg name="host" value="${sentinel3.host}"/> <constructor-arg 
+		name="port" value="${sentinel3.port}"/> </bean> -->
+
+	<!-- redis template definition -->
+	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+		<property name="connectionFactory" ref="jedisConnectionFactory" />
+		<!-- 如果不配置Serializer，那么存储的时候将只能使用String，如果用 具体Class例如User类型存储，那么会提示错误 User 
+			can't cast to String -->
+		<!-- jedis自3.0.0-snapshot起，已经支持 BinaryJedisCluster -->
+		<property name="keySerializer">
+			<bean
+				class="org.springframework.data.redis.serializer.StringRedisSerializer" />
+		</property>
+		<property name="valueSerializer">
+			<bean
+				class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer" />
+		</property>
+	</bean>
+
+	<bean id="serializer" class="com.jingoal.web.hessian.HessianSerializer" />
+	<bean id="messageDispatcher" class="com.jingoal.web.redis.RedisMessageDispatcher"
+		init-method="start" destroy-method="shutdown">
+		<property name="connectionFactory" ref="jedisConnectionFactory"></property>
+		<property name="listeners">
+			<list>
+				<ref bean="sampleListener" />
+			</list>
+		</property>
+		<property name="serializer" ref="serializer" />
+	</bean>
+
+	<bean id="redisProducer" class="com.jingoal.web.redis.RedisProducer">
+		<property name="connectionFactory" ref="jedisConnectionFactory" />
+		<property name="serializer" ref="serializer" />
+	</bean>
+</beans>
