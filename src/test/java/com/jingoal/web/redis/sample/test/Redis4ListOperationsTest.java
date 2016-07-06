@@ -12,15 +12,15 @@ import org.testng.annotations.Test;
 @ContextConfiguration(locations = "classpath:root-context.xml")
 public class Redis4ListOperationsTest extends AbstractTestNGSpringContextTests {
 
-	@Autowired
-	private RedisTemplate<String, String> template; // inject the template as
-													// ListOperations
-	@Resource(name = "redisTemplate")
-	private ListOperations<String, String> listOps;
+  @Autowired
+  private RedisTemplate<String, String> template; // inject the template as
+                                                  // ListOperations
+  @Resource(name = "redisTemplate")
+  private ListOperations<String, String> listOps;
 
-	@Test
-	public void addLink() {
-		listOps.leftPush("a", "b");
-	}
+  @Test
+  public void addLink() {
+    listOps.leftPush("a", "b");
+  }
 
 }

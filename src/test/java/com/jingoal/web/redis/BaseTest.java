@@ -8,8 +8,8 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 @ContextConfiguration(locations = "classpath:root-context.xml")
 public class BaseTest extends AbstractTestNGSpringContextTests {
 
-	@Autowired
-	public RedisTemplate<String, String> template; // inject the template as
-													// ListOperations
-	
+  @Autowired
+  public RedisTemplate<String, String> template; // inject the template as
+                                                 // ListOperations
+
 }
